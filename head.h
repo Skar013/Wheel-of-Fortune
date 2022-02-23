@@ -17,29 +17,35 @@ namespace Content_{
         string fContent="";
         string chars="";
         map<int,vector<string>> ordered_list;
-        const char* message="The most possible letters in %s are:%s\n";
+        map<char,int> letter_count;
+        const char* message="The most possible letter or letters to open:";
         struct search_info{
             string origin;
             regex search_reg;
             vector<string>::const_iterator itBeg;
-            vector<string>::const_iterator itEnd;
-            map<char,int> letter_count;
+            vector<string>::const_iterator itEnd;     
             int len;
-            string ch;
+       
         };
         template<class T>
-        void set_pos_char(T it){
+        string set_pos_char(T it){
             int max=-1;
             string s="";
-            for(auto i:it->letter_count){
-                if(i.second>=max){
-                    max=i.second;
-                    s+=i.first;
+            for(auto i:it){
+                if(i.second==max){
                     s.push_back(' ');
+                    s+=i.first;
+                }
+                else if(i.second>max){
+                    max=i.second;
+                    s="";
+                    s.push_back(' ');
+                    s+=i.first;
+              
 
                 }
             }
-            it->ch=s;
+           return s;
         }
         template<class T>
         void find_match(T it,T b,T e){
@@ -51,29 +57,20 @@ namespace Content_{
                 while (it!=e)
                 {
                     if(it->itBeg==it->itEnd)
-                        {
-                            if(it->ch=="\0")
-                                this->set_pos_char(it);
-                            it++;
-                        }
+                        it++;
                     else
                     {
                         done=false;
                         break;
                     }
                 }
-                it=b;
+                
                 if(done){
-                    while (it!=e)
-                    {
-                        const char *s1=&(it->origin[0]);
-                        const char *s2=&(it->ch[0]);
-                        printf(this->message,s1,s2);
-                        it++;
-                    }
                     
+                    cout<<this->message<<this->set_pos_char(this->letter_count)<<endl;
                     return;
                 }
+                it=b;
                 
             }
 
@@ -86,12 +83,12 @@ namespace Content_{
                         cout<<s+" ";
                         string letters=this->uniq_chars(regex_replace(s,regex("["+this->chars+"]"),""));
                         for(char ch:letters){
-                            if(it->letter_count.count(ch))
+                            if(this->letter_count.count(ch))
                             {
-                                it->letter_count[ch]++;
+                                this->letter_count[ch]++;
                                 continue;
                             }
-                            it->letter_count.insert(pair<char,int>(ch,1));
+                            this->letter_count.insert(pair<char,int>(ch,1));
                         }
                         break;
                     }
@@ -143,7 +140,7 @@ namespace Content_{
                 s1=this->low_case(s1);
                 regex se=regex("^"+regex_replace(s1,regex(ch),"[^"+this->chars+"]")+"$");
                 int len=s1.length();
-                v_ser_inf.push_back({s1,se,this->ordered_list[len].cbegin(),this->ordered_list[len].cend(),map<char,int>(),len,"\0"});
+                v_ser_inf.push_back({s1,se,this->ordered_list[len].cbegin(),this->ordered_list[len].cend(),len});
 
             }
             this->find_match(v_ser_inf.begin(),v_ser_inf.begin(),v_ser_inf.end());
